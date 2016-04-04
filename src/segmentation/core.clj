@@ -56,14 +56,15 @@
 (def windows
   [{:window/id :dma-grouper
     :window/task :group-dmas
-    :window/type :global
+    :window/type :fixed
     :window/aggregation :onyx.windowing.aggregation/conj
-    :window/window-key :event-time}])
+    :window/window-key :event-time
+    :window/range [5 :minutes]}])
 
 (def triggers
   [{:trigger/window-id :dma-grouper
     :trigger/refinement :onyx.refinements/accumulating
-    :trigger/on :onyx.triggers/segment
+    :trigger/on :onyx.triggers/segment 
     :trigger/threshold [5 :elements]
     :trigger/sync ::dump-window!}])
 
@@ -72,15 +73,15 @@
                    window-id lower-bound upper-bound state)))
 
 (def input-segments
-  [{:person-id 1000 :gender 0 :dma-id 1}
-   {:person-id 1001 :gender 0 :dma-id 2}
-   {:person-id 1002 :gender 1 :dma-id 1}
-   {:person-id 1003 :gender 0 :dma-id 1}
-   {:person-id 1004 :gender 1 :dma-id 3}
-   {:person-id 1005 :gender 1 :dma-id 3}
-   {:person-id 1006 :gender 0 :dma-id 3}
-   {:person-id 1007 :gender 0 :dma-id 3}
-   {:person-id 1008 :gender 1 :dma-id 3}
+  [{:person-id 1000 :gender 0 :dma-id 1 :event-time 0}
+   {:person-id 1001 :gender 0 :dma-id 2 :event-time 0}
+   {:person-id 1002 :gender 1 :dma-id 1 :event-time 0}
+   {:person-id 1003 :gender 0 :dma-id 1 :event-time 0}
+   {:person-id 1004 :gender 1 :dma-id 3 :event-time 0}
+   {:person-id 1005 :gender 1 :dma-id 3 :event-time 0}
+   {:person-id 1006 :gender 0 :dma-id 3 :event-time 0}
+   {:person-id 1007 :gender 0 :dma-id 3 :event-time 0}
+   {:person-id 1008 :gender 1 :dma-id 3`:event-time 0}
    :done])
 
 (doseq [segment input-segments]
