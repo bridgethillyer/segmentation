@@ -1,7 +1,5 @@
 (ns segmentation.core
-  (:require [clojure.core.async :refer [chan >!! <!! close!]]
-            [onyx.plugin.core-async :refer [take-segments!]]
-            [onyx.api]))
+  (:require [clojure.core.async :refer [chan >!! <!! close!]]))
 
 
 (defn filter-by-gender [gender segment]
@@ -91,32 +89,7 @@
 ;; otherwise an Onyx peer will block indefinitely trying to read.
 (close! input-chan)
 
-(def id (java.util.UUID/randomUUID))
-
-(def env-config
-  {:zookeeper/address "127.0.0.1:2188"
-   :zookeeper/server? true
-   :zookeeper.server/port 2188
-   :onyx.bookkeeper/server? true
-   :onyx.bookkeeper/local-quorum? true
-   :onyx.bookkeeper/local-quorum-ports [3196 3197 3198]
-   :onyx/tenancy-id id})
-
-(def peer-config
-  {:zookeeper/address "127.0.0.1:2188"
-   :onyx/tenancy-id id
-   :onyx.peer/job-scheduler :onyx.job-scheduler/balanced
-   :onyx.messaging/impl :aeron
-   :onyx.messaging/peer-port 40200
-   :onyx.messaging/bind-addr "localhost"})
-
-(def env (onyx.api/start-env env-config))
-
-(def peer-group (onyx.api/start-peer-group peer-config))
-
 (def n-peers (count (set (mapcat identity workflow))))
-
-(def v-peers (onyx.api/start-peers n-peers peer-group))
 
 (defn inject-in-ch [event lifecycle]
   {:core.async/chan input-chan})
@@ -140,20 +113,3 @@
    {:lifecycle/task :out
     :lifecycle/calls :onyx.plugin.core-async/writer-calls}])
 
-(onyx.api/submit-job
- peer-config
- {:workflow workflow
-  :catalog catalog
-  :lifecycles lifecycles
-  :windows windows
-  :triggers triggers
-  :task-scheduler :onyx.task-scheduler/balanced})
-
-(onyx.plugin.core-async/take-segments! output-chan)
-
-(doseq [v-peer v-peers]
-  (onyx.api/shutdown-peer v-peer))
-
-(onyx.api/shutdown-peer-group peer-group)
-
-(onyx.api/shutdown-env env)     
